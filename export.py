@@ -12,26 +12,65 @@ def get_data_from_file(filename):
         return json.load(f)
 
 def insert_studios(studios,token):
-    endpoint = JAVA_SERVER +''
+
+    success = 0
+    error = 0
+
+    endpoint = JAVA_SERVER +'/distribution'
     for line in studios :
-        http.post(endpoint , data=line , headers= {"Autorization" : "Bearer " + token} )
+        response =  http.post(endpoint , data= json.dumps(line) , headers= {"Authorization" : "Bearer " + token , "content-type" : "application/json"} )
+
+        if response.status_code == 200 :
+            success +=1
+        else:
+            print(response.content)
+            error +=1
+    print('Studios : ' + str(success) +' success et '+ str(error) +' error')
 
 
 def insert_actors(actors,token):
-    endpoint = JAVA_SERVER +''
+    
+    success = 0
+    error = 0
+    endpoint = JAVA_SERVER +'/person'
     for line in actors :
-        http.post(endpoint , data=line , headers= {"Autorization" : "Bearer " + token} )
+        response =  http.post(endpoint , data= json.dumps(line) , headers= {"Authorization" : "Bearer " + token , "content-type" : "application/json"} )
+
+        if response.status_code == 200 :
+            success +=1
+        else:
+            print(response.status_code)
+            error +=1
+
+    print('Actors : ' + str(success) +' success et '+ str(error) +' error')
     
 
 def insert_genres(genres,token):
-    endpoint = JAVA_SERVER +''
+      
+    success = 0
+    error = 0
+    endpoint = JAVA_SERVER +'/categorie'
     for line in genres :
-        http.post(endpoint , data=line , headers= {"Autorization" : "Bearer " + token} )
+        response =  http.post(endpoint , data= json.dumps(line) , headers= {"Authorization" : "Bearer " + token , "content-type" : "application/json"} )
+
+        if response.status_code == 200 :
+            success +=1
+        else:
+            error +=1
+    print('Genres : ' + str(success) +' success et '+ str(error) +' error')
 
 def insert_films_and_associated_items(films,token):
+    success = 0
+    error = 0
     endpoint = JAVA_SERVER +''
     for line in films :
-        http.post(endpoint , data=line , headers= {"Autorization" : "Bearer " + token} )
+        response =  http.post(endpoint , data= json.dumps(line) , headers= {"Authorization" : "Bearer " + token , "content-type" : "application/json"} )
+
+        if response.status_code == 200 :
+            success +=1
+        else:
+            error +=1
+    print('Films : ' + str(success) +' success et '+ str(error) +' error')
 
 
 def get_token(argv):
@@ -40,6 +79,8 @@ def get_token(argv):
         if key == '-t' or key == '--token':
             return value
     return None
+
+
 
 
 
@@ -53,10 +94,10 @@ def main(argv):
         genres = get_data_from_file('genres.json')
         films = get_data_from_file('films.json')
 
-        insert_genres(genres)
-        insert_studios(studios)
-        insert_actors(actors)
-        insert_films_and_associated_items(films)
+        insert_genres(genres,token)
+        insert_studios(studios,token)
+        insert_actors(actors,token)
+        #insert_films_and_associated_items(films,token)
     else:
         print("Ajoutez un token avec la commande -t ou --token ")
 
