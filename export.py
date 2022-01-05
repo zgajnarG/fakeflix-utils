@@ -62,16 +62,43 @@ def insert_genres(genres,token):
 def insert_films_and_associated_items(films,token):
     success = 0
     error = 0
-    endpoint = JAVA_SERVER +''
+    endpoint = JAVA_SERVER +'/film'
     for line in films :
-        response =  http.post(endpoint , data= json.dumps(line) , headers= {"Authorization" : "Bearer " + token , "content-type" : "application/json"} )
+        data = { "id" : line["id"],"nom" :line["nom"] , "annee" :line["annee"] , "description" :line["description"] , "score" :line["score"] , "categoryAge":line["categoryAge"] , "urlImageFilm" : line["urlImageFilm"]}
+        response =  http.put(endpoint , data= json.dumps(data) , headers= {"Authorization" : "Bearer " + token , "content-type" : "application/json"})
 
         if response.status_code == 200 :
+            insert_film_categories(line,token)
+            insert_film_participation(line,token)
             success +=1
         else:
             error +=1
     print('Films : ' + str(success) +' success et '+ str(error) +' error')
 
+def insert_film_categories(film,token):
+    success = 0
+    error = 0
+  
+    for categorie in film['filmCategories']:
+        endpoint = JAVA_SERVER +'/film/'+str(film["id"])+'/categorie/'+str(categorie["id"])
+        responsecategorie = http.post(endpoint, headers= {"Authorization" : "Bearer " + token , "content-type" : "application/json"})
+        if responsecategorie.status_code == 200 :
+            success +=1
+        else :
+            error +=1
+
+def insert_film_participation(film,token):
+    success = 0
+    error = 0
+    for participation in film['participants']:
+        if participation['role'] == "Acting" or participation['role'] == "Directing" :
+            data = {"filmId" : film["id"] , "personneId" : participation["id"] , "role" : participation["role"].upper()}
+            endpoint = JAVA_SERVER +"/participation"
+            responsecategorie = http.post(endpoint, data= json.dumps(data)  , headers= {"Authorization" : "Bearer " + token , "content-type" : "application/json"})
+            if responsecategorie.status_code == 200 :
+                success +=1
+            else :
+                error +=1
 
 def get_token(argv):
     opts, args = getopt.getopt(argv,"p:t:",["ifile=","ofile="])
@@ -79,9 +106,6 @@ def get_token(argv):
         if key == '-t' or key == '--token':
             return value
     return None
-
-
-
 
 
 def main(argv):
@@ -97,7 +121,7 @@ def main(argv):
         insert_genres(genres,token)
         insert_studios(studios,token)
         insert_actors(actors,token)
-        #insert_films_and_associated_items(films,token)
+        insert_films_and_associated_items(films,token)
     else:
         print("Ajoutez un token avec la commande -t ou --token ")
 
